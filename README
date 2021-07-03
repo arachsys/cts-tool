@@ -1,0 +1,84 @@
+Interfacing to BCMS CTS
+=======================
+
+The British Cattle Movement Service is a division of the UK Rural Payments
+Agency. They run a database of all British bovines, known as the Cattle
+Tracing System. Farmers record all births, deaths, arrivals and departures,
+and can access this information for their animals.
+
+As well as a clunky web interface, CTS has an XML-over-HTTP API. This is a
+hilarious showcase of enterprise mediocrity: ugly, inconsistent, mixed-case
+tag/attribute names in an XML soup that is base64-encoded and then wrapped
+in another XML layer. Would you like an AbstractSingletonProxyFactoryBean
+with that?
+
+Implementation highlights include multi-second latency from virus-scanning
+the base64 payload before parsing it as XML, and (very) asynchronous
+responses to the smallest database modifications. The best one can do in a
+client interface is to abstract away some of the ugliness.
+
+Each farmer is automatically issued with a CTS Web Services username and
+password, which software needs to authenticate to CTWS. The username is
+typically three groups of three digits separated by hyphens in the format
+nnn-nnn-nnn. It is not the same as the CTS Online web login.
+
+As a single farmer can have access to multiple holdings, the specific CPH
+number must also be provided with requests to prevent ambiguity.
+
+Separately, the DEFRA Data Transfer Service expects software to identify
+itself with a fixed username and password. These credentials self-evidently
+have no useful security properties as they need to ship with programs in
+plaintext-equivalent form, but this flavour of idiocy afflicts a number of
+UK public-sector APIs.
+
+Acquiring DDTS credentials is left as an exercise for the user. You can
+obtain them officially by jumping through some simple hoops to demonstrate
+compliant use of the API on a test server, or extract them from other
+software, or just man-in-the-middle any CTWS client's https connection to
+read them out.
+
+
+cts-list
+--------
+
+The DDTS (software) username/password, CTWS (farmer) username/password and
+the holding number must be configured in the config hash at the top of the
+script before use. (If you prefer to specify these as command arguments
+instead, use sys.argv in the configuration.)
+
+Once these are set, run cts-list with Python 3.x to extract the list of
+cattle on the holding, one per line in the space-separated format
+
+  ANIMAL BREED SEX BORN ARRIVED
+
+where
+
+  - ANIMAL is the registered ear tag, e.g. 'UK701453700119';
+  - BREED is the breed code, e.g. 'LIMX' or 'WAX';
+  - SEX is a single character 'M' or 'F';
+  - BORN is the date of birth in the format YYYY-MM-DD;
+  - ARRIVED is the arrival date on the holding in the format YYYY-MM-DD.
+
+This format is chosen to make correct shell, awk or sed one-liners simple.
+There are no escape characters or line-continuations, no optional or
+potentially empty fields, no fields allowing whitespace, and the date
+format can be compared lexicographically without parsing.
+
+For example, to list the group who moved on to the holding on 2021-03-01:
+
+  cts-list | awk '$5 == "2021-03-01" { print $0 }'
+
+or to get tags and dates of birth for all heifers/cows born before 2019:
+
+  cts-list | awk '$3 == "F" && $4 < "2019-01-01" { print $1, $4 }'
+
+or to generate a full CSV file compatible with spreadsheet software:
+
+  cts-list | tr ' ' ','
+
+
+Copying
+-------
+
+This software was written by Chris Webb <chris@arachsys.com> and is
+distributed as Free Software under the terms of the MIT license in COPYING.
