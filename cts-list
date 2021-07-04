@@ -14,7 +14,7 @@ config = {
            + 'DefraDataTransferPublicNWSE.asmx',
   'ddts': { 'username': 'DDTS.CTWS.xxxxxxxx', 'password': 'xxxxxxxx' },
   'ctws': { 'username': 'nnn-nnn-nnn', 'password': 'xxxxxxxx' },
-  'holding': 'cc/ppp/hhhh'
+  'holding': 'cc/ppp/hhhh', 'site': ''
 }
 
 ns = {
@@ -33,7 +33,10 @@ request = ET.Element('GetHolding', xmlns = ns['request'],
   RequestTimeStamp = datetime.utcnow().isoformat() + '+00:00')
 ET.SubElement(ET.SubElement(request, 'Authentication'), 'CTS_OL_User',
   Usr = config['ctws']['username'], Pwd = config['ctws']['password'])
-ET.SubElement(request, 'Holding', Loc = config['holding'])
+
+holding = ET.SubElement(request, 'Holding', Loc = config['holding'])
+if config.get('site'):
+  holding.attrib['SLoc'] = config['site']
 request = base64.b64encode(serialise(request)).decode('ascii')
 
 envelope = ET.Element('Envelope', xmlns = ns['envelope'])

@@ -43,8 +43,9 @@ cts-list
 
 The DDTS (software) username/password, CTWS (farmer) username/password and
 the holding number must be configured in the config hash at the top of the
-script before use. (If you prefer to specify these as command arguments
-instead, use sys.argv in the configuration.)
+script before use. Set the site field only if your holding is associated
+with multiple sub-locations. To specify some of these fields as command
+arguments instead, use sys.argv in the configuration.
 
 Once these are set, run cts-list with Python 3.x to extract the list of
 cattle on the holding, one per line in the space-separated format
