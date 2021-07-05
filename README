@@ -38,17 +38,31 @@ software, or just man-in-the-middle any CTWS client's https connection to
 read them out.
 
 
-cts-list
---------
+Installation and configuration
+------------------------------
+
+A single Python 3.x script 'cts' is provided. Ensure the #! path is correct
+for your system before copying it to a directory on your path.
 
 The DDTS (software) username/password, CTWS (farmer) username/password and
-the holding number must be configured in the config hash at the top of the
-script before use. Set the site field only if your holding is associated
-with multiple sub-locations. To specify some of these fields as command
-arguments instead, use sys.argv in the configuration.
+the holding number must be configured either in environment variables or in
+the config hash at the top of the 'cts' script.
 
-Once these are set, run cts-list with Python 3.x to extract the list of
-cattle on the holding, one per line in the space-separated format
+To use the environment, export DDTSAUTH in the format USERNAME:PASSWORD,
+CTWSAUTH in the format USERNAME:PASSWORD, and HOLDING in the format
+CC/PPP/HHHH or CC/PPP/HHHH-NN if you have multiple sub-locations associated
+with your holding. Each setting is only read from the environment if it is
+not set in the config hash in the script.
+
+
+Listing animals
+---------------
+
+To list animals on the holding, run
+
+  cts list
+
+This outputs lines for each animal in the space-separated format
 
   ANIMAL BREED SEX BORN ARRIVED
 
@@ -67,15 +81,45 @@ format can be compared lexicographically without parsing.
 
 For example, to list the group who moved on to the holding on 2021-03-01:
 
-  cts-list | awk '$5 == "2021-03-01" { print $0 }'
+  cts list | awk '$5 == "2021-03-01" { print $0 }'
 
 or to get tags and dates of birth for all heifers/cows born before 2019:
 
-  cts-list | awk '$3 == "F" && $4 < "2019-01-01" { print $1, $4 }'
+  cts list | awk '$3 == "F" && $4 < "2019-01-01" { print $1, $4 }'
 
 or to generate a full CSV file compatible with spreadsheet software:
 
-  cts-list | tr ' ' ','
+  cts list | tr ' ' ','
+
+
+Reporting movements
+-------------------
+
+To report a movement off the holding, run
+
+  cts move off YYYY-MM-DD [TAG]...
+
+where YYYY-MM-DD is the date of the movement. The list of ear tags can
+either be given as additional command arguments, or be supplied on stdin,
+with one tag per line. The first whitespace-separated word is assumed to be
+the ear tag; any other words on each line are ignored.
+
+Similarly, to report a movement onto the holding, use
+
+  cts move on YYYY-MM-DD [TAG]...
+
+and to report deaths, use
+
+  cts death YYYY-MM-DD [TAG]...
+
+CTS implements these operations asynchronously: clients submit a request,
+get a receipt in return, then call back with the receipt number to retrieve
+validation results or an error. In practice, results are usually available
+immediately, so for ease of use, cts move combines both operations. It will
+automatically retry when requests are backlogged but this is rare.
+
+The receipt number, any validation errors, and the numbers of accepted and
+rejected movements are reported on stdout.
 
 
 Copying
