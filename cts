@@ -17,7 +17,7 @@ config = {
   'holding': ''
 }
 
-def itemise():
+def animals():
   xmlns = {
     'request': 'http://defra.bcms.ctws/holding_request',
     'results': 'http://defra.bcms.ctws/holding_request_results'
@@ -53,6 +53,37 @@ def legal(date):
       and datetime.strptime(date, "%Y-%m-%d") < datetime.now()
   except:
     return False
+
+def queries():
+  xmlns = {
+    'request': 'http://defra.bcms.ctws/holding_request',
+    'results': 'http://defra.bcms.ctws/holding_request_results'
+  }
+
+  request = ET.Element('GetHolding', xmlns = xmlns['request'],
+    SchemaVersion = '1.0', ProgramName = 'cts-tool', ProgramVersion = '1.0',
+    RequestTimeStamp = datetime.utcnow().isoformat() + '+00:00')
+  ET.SubElement(ET.SubElement(request, 'Authentication'), 'CTS_OL_User',
+    Usr = config['ctws']['username'], Pwd = config['ctws']['password'])
+
+  holding = ET.SubElement(request, 'Holding', Loc = config['holding'])
+  if config.get('site'):
+    holding.attrib['SLoc'] = config['site']
+
+  results = transfer('Get_Cattle_On_Holding-V1-0', request)
+
+  for animal in results.findall('.//results:QueriedAnimal', xmlns):
+    print('animal', animal.attrib.get('Etg', '').replace(' ', '') or '?',
+      animal.attrib.get('Brd', '').upper() or '?',
+      animal.attrib.get('Sex', '').upper() or '?',
+      animal.attrib.get('Dob') or '?',
+      animal.attrib.get('OnDate') or '?')
+
+  for move in results.findall('.//results:QueriedMovement', xmlns):
+    kind = move.attrib.get('MovType') or '?'
+    kind = { '2': 'on', '3': 'off', '7': 'death' }.get(kind, kind)
+    print('move', move.attrib.get('Etg', '').replace(' ', '') or '?',
+      kind, move.attrib.get('MovDate') or '?')
 
 def move(kind, date, tags):
   xmlns = {
@@ -185,12 +216,14 @@ elif not re.fullmatch(r'\d+/\d+/\d+', config['holding']):
   sys.exit(1)
 
 if len(sys.argv) == 2 and sys.argv[1] == 'list':
-  itemise()
+  animals()
 elif len(sys.argv) >= 4 and sys.argv[1] == 'death' and legal(sys.argv[2]):
   move(sys.argv[1], sys.argv[2], sys.argv[3:] or readtags(sys.stdin))
 elif len(sys.argv) >= 4 and sys.argv[1] == 'move' \
     and sys.argv[2] in ['death', 'off', 'on'] and legal(sys.argv[3]):
   move(sys.argv[2], sys.argv[3], sys.argv[4:] or readtags(sys.stdin))
+elif len(sys.argv) == 2 and sys.argv[1] == 'queries':
+  queries()
 else:
   sys.stderr.write(f'''\
 Usage:
@@ -198,6 +231,7 @@ Usage:
   {sys.argv[0]} death YYYY-MM-DD [TAG]...
   {sys.argv[0]} move off YYYY-MM-DD [TAG]...
   {sys.argv[0]} move on YYYY-MM-DD [TAG]...
+  {sys.argv[0]} queries
 Tags are read from stdin if not supplied as arguments.
 ''')
   sys.exit(64)

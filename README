@@ -122,6 +122,25 @@ The receipt number, any validation errors, and the numbers of accepted and
 rejected movements are reported on stdout.
 
 
+Checking for queries
+--------------------
+
+To check for queried animals or movements, run
+
+  cts queries
+
+This will report any queries with lines in the format
+
+  animal TAG BREED SEX BORN ARRIVED
+
+or
+
+  move TAG TYPE YYYY-MM-DD
+
+for queried animals and movements respectively. The output should normally
+be empty, indicating no problems.
+
+
 Copying
 -------
 
