@@ -35,11 +35,11 @@ def animals():
 
   results, animals = transfer('Get_Cattle_On_Holding-V1-0', request), []
   for animal in results.findall('.//results:Animal', xmlns):
-    animals.append((animal.attrib.get('Etg').replace(' ', ''),
-                    animal.attrib.get('Brd', '?').upper(),
-                    animal.attrib.get('Sex', '?').upper(),
-                    animal.attrib.get('Dob', '?'),
-                    animal.attrib.get('OnDate', '?')))
+    animals.append((animal.attrib.get('Etg', '').replace(' ', '') or '?',
+                    animal.attrib.get('Brd', '').upper() or '?',
+                    animal.attrib.get('Sex', '').upper() or '?',
+                    animal.attrib.get('Dob') or '?',
+                    animal.attrib.get('OnDate') or '?'))
 
   animals.sort(key = lambda a: a[0][-5:])
   animals.sort(key = lambda a: a[3])
