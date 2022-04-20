@@ -217,7 +217,7 @@ elif not re.fullmatch(r'\d+/\d+/\d+', config['holding']):
 
 if len(sys.argv) == 2 and sys.argv[1] == 'list':
   animals()
-elif len(sys.argv) >= 4 and sys.argv[1] == 'death' and legal(sys.argv[2]):
+elif len(sys.argv) >= 3 and sys.argv[1] == 'death' and legal(sys.argv[2]):
   move(sys.argv[1], sys.argv[2], sys.argv[3:] or readtags(sys.stdin))
 elif len(sys.argv) >= 4 and sys.argv[1] == 'move' \
     and sys.argv[2] in ['death', 'off', 'on'] and legal(sys.argv[3]):
