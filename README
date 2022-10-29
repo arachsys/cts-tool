@@ -64,11 +64,11 @@ To list animals on the holding, run
 
 This outputs lines for each animal in the space-separated format
 
-  ANIMAL BREED SEX BORN ARRIVED
+  TAG BREED SEX BORN ARRIVED
 
 where
 
-  - ANIMAL is the registered ear tag, e.g. 'UK701453700119';
+  - TAG is the registered ear tag, e.g. 'UK701453700119';
   - BREED is the breed code, e.g. 'LIMX' or 'WAX';
   - SEX is a single character 'M' or 'F';
   - BORN is the date of birth in the format YYYY-MM-DD;
@@ -92,6 +92,38 @@ or to generate a full CSV file compatible with spreadsheet software:
   cts list | tr ' ' ','
 
 
+Listing movement history
+------------------------
+
+To list the movement history of animals on the holding, run
+
+  cts history [TAG]...
+
+The list of ear tags can be given as command arguments or on stdin, with one
+tag per line. The first whitespace-separated word is assumed to be the ear
+tag; any other words on each line are ignored.
+
+This outputs lines of the form
+
+  TAG DATE LOCATION TYPE
+
+where
+
+  - TAG is the registered ear tag, e.g. 'UK701453700119';
+  - DATE is the movement date in the format YYYY-MM-DD;
+  - LOCATION is the movement location, e.g. '35/166/0188';
+  - TYPE describes the moment: 'birth', 'death', 'off' or 'on'.
+
+If an animal is not found on the holding, a single line of the form
+
+  TAG not found
+
+is printed instead. Unfortunately, CTWS fails to distinguish tags that do
+not exist from valid animals that have moved to another holding, despite
+this information being available in the web interface. However, history is
+correctly returned for animals that died on the holding.
+
+
 Reporting movements
 -------------------
 
@@ -99,10 +131,10 @@ To report a movement off the holding, run
 
   cts move off YYYY-MM-DD [TAG]...
 
-where YYYY-MM-DD is the date of the movement. The list of ear tags can
-either be given as additional command arguments, or be supplied on stdin,
-with one tag per line. The first whitespace-separated word is assumed to be
-the ear tag; any other words on each line are ignored.
+where YYYY-MM-DD is the date of the movement. The list of ear tags can be
+given as command arguments or on stdin, with one tag per line. The first
+whitespace-separated word is assumed to be the ear tag; any other words on
+each line are ignored.
 
 Similarly, to report a movement onto the holding, use
 

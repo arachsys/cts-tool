@@ -47,6 +47,33 @@ def animals():
   for animal in animals:
     print(' '.join(animal))
 
+def history(tags):
+  xmlns = {
+    'request': 'http://defra.bcms.ctws/animal_details_request',
+    'results': 'http://defra.bcms.ctws/animal_details_request_results'
+  }
+
+  request = ET.Element('GetAnimalDetails', xmlns = xmlns['request'],
+    SchemaVersion = '1.0', ProgramName = 'cts-tool', ProgramVersion = '1.0',
+    RequestTimeStamp = datetime.utcnow().isoformat() + '+00:00')
+  ET.SubElement(ET.SubElement(request, 'Authentication'), 'CTS_OL_User',
+    Usr = config['ctws']['username'], Pwd = config['ctws']['password'])
+
+  animals = ET.SubElement(request, 'Eartags')
+  for tag in tags:
+    ET.SubElement(animals, 'Eartag_Id').text = tag
+
+  results = transfer('Get_Animal_Details-V1-0', request)
+  for animal in results.findall('.//results:AnimalDetailResult', xmlns):
+    tag = animal.attrib.get('Eartag', '').replace(' ', '') or '?'
+    moves = animal.findall('.//results:MovementDetails/*', xmlns)
+    for move in moves:
+      print(tag, move.attrib.get('MDate') or '?',
+        move.attrib.get('Loc') or '?',
+        move.attrib.get('MTypeDesc', '').lower().replace('normal ', ''))
+    if not moves:
+      print(tag, 'not found')
+
 def legal(date):
   try:
     return re.fullmatch(r'\d{4}-\d{2}-\d{2}', date) \
@@ -217,6 +244,8 @@ elif not re.fullmatch(r'\d+/\d+/\d+', config['holding']):
 
 if len(sys.argv) == 2 and sys.argv[1] == 'list':
   animals()
+elif len(sys.argv) >= 2 and sys.argv[1] == 'history':
+  history(sys.argv[2:] or readtags(sys.stdin))
 elif len(sys.argv) >= 3 and sys.argv[1] == 'death' and legal(sys.argv[2]):
   move(sys.argv[1], sys.argv[2], sys.argv[3:] or readtags(sys.stdin))
 elif len(sys.argv) >= 4 and sys.argv[1] == 'move' \
@@ -228,6 +257,7 @@ else:
   sys.stderr.write(f'''\
 Usage:
   {sys.argv[0]} list
+  {sys.argv[0]} history [TAG]...
   {sys.argv[0]} death YYYY-MM-DD [TAG]...
   {sys.argv[0]} move off YYYY-MM-DD [TAG]...
   {sys.argv[0]} move on YYYY-MM-DD [TAG]...
