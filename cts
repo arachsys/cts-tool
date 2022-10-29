@@ -170,9 +170,15 @@ def move(kind, date, tags):
     for cause in row.findall('.//results:Cause', xmlns):
       print(tag, 'rejected:', cause.attrib['Desc'].lower())
 
-def readtags(file):
-  lines = (line.split(None, 1) for line in file)
-  return (words[0] for words in lines if words)
+def readtags(tags):
+  if not tags:
+    lines = (line.split(None, 1) for line in sys.stdin)
+    tags = [words[0] for words in lines if words]
+  for tag in tags:
+    if not tag.isalnum() or len(tag) > 14:
+      sys.stderr.write('Invalid tag: ' + tag + '\n')
+      sys.exit(1)
+  return tags
 
 def serialise(element):
   element = ET.tostring(element, 'utf-8')
@@ -245,12 +251,12 @@ elif not re.fullmatch(r'\d+/\d+/\d+', config['holding']):
 if len(sys.argv) == 2 and sys.argv[1] == 'list':
   animals()
 elif len(sys.argv) >= 2 and sys.argv[1] == 'history':
-  history(sys.argv[2:] or readtags(sys.stdin))
+  history(readtags(sys.argv[2:]))
 elif len(sys.argv) >= 3 and sys.argv[1] == 'death' and legal(sys.argv[2]):
-  move(sys.argv[1], sys.argv[2], sys.argv[3:] or readtags(sys.stdin))
+  move(sys.argv[1], sys.argv[2], readtags(sys.argv[3:]))
 elif len(sys.argv) >= 4 and sys.argv[1] == 'move' \
     and sys.argv[2] in ['death', 'off', 'on'] and legal(sys.argv[3]):
-  move(sys.argv[2], sys.argv[3], sys.argv[4:] or readtags(sys.stdin))
+  move(sys.argv[2], sys.argv[3], readtags(sys.argv[4:]))
 elif len(sys.argv) == 2 and sys.argv[1] == 'queries':
   queries()
 else:
