@@ -8,7 +8,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone
 from xml.etree import ElementTree as ET
 
 config = {
@@ -25,7 +25,7 @@ def animals():
 
   request = ET.Element('GetHolding', xmlns = xmlns['request'],
     SchemaVersion = '1.0', ProgramName = 'cts-tool', ProgramVersion = '1.0',
-    RequestTimeStamp = datetime.utcnow().isoformat() + '+00:00')
+    RequestTimeStamp = datetime.now(timezone.utc).isoformat())
   ET.SubElement(ET.SubElement(request, 'Authentication'), 'CTS_OL_User',
     Usr = config['ctws']['username'], Pwd = config['ctws']['password'])
 
@@ -55,7 +55,7 @@ def history(tags):
 
   request = ET.Element('GetAnimalDetails', xmlns = xmlns['request'],
     SchemaVersion = '1.0', ProgramName = 'cts-tool', ProgramVersion = '1.0',
-    RequestTimeStamp = datetime.utcnow().isoformat() + '+00:00')
+    RequestTimeStamp = datetime.now(timezone.utc).isoformat())
   ET.SubElement(ET.SubElement(request, 'Authentication'), 'CTS_OL_User',
     Usr = config['ctws']['username'], Pwd = config['ctws']['password'])
 
@@ -89,7 +89,7 @@ def queries():
 
   request = ET.Element('GetHolding', xmlns = xmlns['request'],
     SchemaVersion = '1.0', ProgramName = 'cts-tool', ProgramVersion = '1.0',
-    RequestTimeStamp = datetime.utcnow().isoformat() + '+00:00')
+    RequestTimeStamp = datetime.now(timezone.utc).isoformat())
   ET.SubElement(ET.SubElement(request, 'Authentication'), 'CTS_OL_User',
     Usr = config['ctws']['username'], Pwd = config['ctws']['password'])
 
@@ -122,7 +122,7 @@ def move(kind, date, tags):
 
   request = ET.Element('RegMovs', xmlns = xmlns['submit'],
     SchemaVersion = '1.0', ProgramName = 'cts-tool', ProgramVersion = '1.0',
-    RequestTimeStamp = datetime.utcnow().isoformat() + '+00:00')
+    RequestTimeStamp = datetime.now(timezone.utc).isoformat())
   ET.SubElement(ET.SubElement(request, 'Authentication'), 'CTS_OL_User',
     Usr = config['ctws']['username'], Pwd = config['ctws']['password'])
 
@@ -139,7 +139,7 @@ def move(kind, date, tags):
 
   request = ET.Element('GetResults', xmlns = xmlns['request'],
     SchemaVersion = '1.0', ProgramName = 'cts-tool', ProgramVersion = '1.0',
-    RequestTimeStamp = datetime.utcnow().isoformat() + '+00:00')
+    RequestTimeStamp = datetime.now(timezone.utc).isoformat())
   ET.SubElement(ET.SubElement(request, 'Authentication'), 'CTS_OL_User',
     Usr = config['ctws']['username'], Pwd = config['ctws']['password'])
   ET.SubElement(request, 'Receipt', Num = str(receipt))
